@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HACNATION - API Documentation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #1e40af, #3b82f6); padding: 40px 20px; text-align: center; }
+        .header h1 { font-size: 2.2em; margin-bottom: 10px; }
+        .header p { opacity: 0.85; font-size: 1.1em; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .section-title { font-size: 1.4em; color: #60a5fa; margin: 25px 0 15px; padding-bottom: 8px; border-bottom: 2px solid #1e3a5f; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 15px; }
+        .card { background: #1e293b; border-radius: 10px; padding: 20px; border: 1px solid #334155; transition: all 0.2s; }
+        .card:hover { border-color: #3b82f6; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(59,130,246,0.2); }
+        .card h3 { color: #f8fafc; font-size: 1.1em; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .card .port { background: #3b82f6; color: white; font-size: 0.75em; padding: 2px 8px; border-radius: 12px; }
+        .card p { color: #94a3b8; font-size: 0.9em; margin-bottom: 12px; line-height: 1.5; }
+        .card a { display: inline-block; background: #2563eb; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 0.9em; }
+        .card a:hover { background: #1d4ed8; }
+        .footer { text-align: center; padding: 30px; color: #64748b; font-size: 0.85em; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 0.7em; font-weight: 600; margin-right: 5px; }
+        .badge-core { background: #065f46; color: #6ee7b7; }
+        .badge-gestion { background: #92400e; color: #fcd34d; }
+        .badge-etendu { background: #5b21b6; color: #c4b5fd; }
+        .badge-pilotage { background: #9d174d; color: #f9a8d4; }
+        .badge-innovant { background: #166534; color: #86efac; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>HACNATION</h1>
+        <p>Logiciel Integre de Gestion d'Etablissement Sanitaire — Documentation API</p>
+        <p style="margin-top:8px;font-size:0.9em;opacity:0.7">17 microservices • Spring Boot 3.4 • Java 21 • FHIR R4 • Kafka • PostgreSQL • Redis • Keycloak</p>
+    </div>
+
+    <div class="container">
+        <div class="section-title">
+            SOCLE — Parcours Patient <span class="badge badge-core">MUST HAVE</span> <span class="badge badge-innovant">INNOVANT</span>
+        </div>
+        <div class="grid">
+            <div class="card">
+                <h3>1. Identite Patient <span class="port">8081</span></h3>
+                <p>Registre central des patients : creation, recherche, doublons, donnees administratives</p>
+                <a href="http://localhost:8081/swagger-ui.html" target="_blank">Swagger</a>
+            </div>
+            <div class="card">
+                <h3>2. DME & FHIR <span class="port">8082</span></h3>
+                <p>Dossier Medical Electronique : antecedents, notes, documents, FHIR Patient R4</p>
+                <a href="http://localhost:8082/swagger-ui.html" target="_blank">Swagger</a>
+            </div>
+            <div class="card">
+                <h3>3. RDV & Agenda <span class="port">8083</span></h3>
+                <p>Prise de rendez-vous, agenda praticiens, creneaux, FHIR Appointment</p>
+                <a href="http://localhost:8083/swagger-ui.html" target="_blank">Swagger</a>
+            </div>
+            <div class="card">
+                <h3>4. File Attente QR <span class="port">8084</span> <span class="badge badge-innovant">INNOVANT</span></h3>
+                <p>QR code scan → check-in automatique, position en file, appel patient</p>
+                <a href="http://localhost:8084/swagger-ui.html" target="_blank">Swagger</a>
+            </div>
+        </div>
+
+        <div class="section-title">
+            CUR — Continuit du Soin <span class="badge badge-core">SHOULD HAVE</span>
+        </div>
+        <div class="grid">
+            <div class="card">
+                <h3>5. Consultation <span class="port">8085</span></h3>
+                <p>Constantes vitales, diagnostic, compte rendu, FHIR Observation</p>
+                <a href="http://localhost:8085/swagger-ui.html" target="_blank">Swagger</a>
+            </div>
+            <div class="card">
+                <h3>6. Prescription <span class="port">8086</span></h3>
+                <p>Prescription examens & medicaments, suivi statuts, FHIR ServiceRequest</p>
+                <a href="http://localhost:8086/swagger-ui.html" target="_blank">Swagger</a>
+            </div>
+            <div class="card">
+                <h3>7. Laboratoire <span class="port">8087</span></h3>
+                <p>Demandes d'analyse, saisie/validation resultats, FHIR DiagnosticReport</p>
+                <a href="http://localhost:8087/swagger-ui.html" target="_blank">Swagger</a>
+            </div>
+            <div class="card">
+                <h3>8. Pharmacie & FEFO <span class="port">8088</span></h3>
+                <p>Ordonnances, delivrance, stock FEFO, alertes peremption</p>
+                <a href="http://localhost:8088/swagger-ui.html" target="_blank">Swagger</a>
+            </div>
+        </div>
+
+        <div class="section-title">
+            GESTION — Valeur Metier <span class="badge badge-gestion">SHOULD HAVE</span>
+        </div>
+        <div class="grid">
+            <div class="card">
+                <h3>9. Facturation <span class="port">8089</span></h3>
+                <p>Generation facture, consolidation actes, lignes detaillees</p>
+                <a href="http://localhost:8089/swagger-ui.html" target="_blank">Swagger</a>
+            </div>
+            <div class="card">
+                <h3>10. Caisse & Mobile Money <span class="port">8090</span></h3>
+                <p>Paiement Orange Money / MTN Money / Wave (simule), recu, resume caisse</p>
+                <a href="http://localhost:8090/swagger-ui.html" target="_blank">Swagger</a>
+            </div>
+        </div>
+
+        <div class="section-title">
+            ETENDUE — Modules Additionnels <span class="badge badge-etendu">COULD HAVE</span>
+        </div>
+        <div class="grid">
+            <div class="card">
+                <h3>11. Accueil & Admission <span class="port">8091</span></h3>
+                <p>Admission patient, orientation service, mode degrade</p>
+                <a href="http://localhost:8091/swagger-ui.html" target="_blank">Swagger</a>
+            </div>
+            <div class="card">
+                <h3>12. Hospitalisation <span class="port">8092</span></h3>
+                <p>Gestion lits, sejours, entrees/sorties</p>
+                <a href="http://localhost:8092/swagger-ui.html" target="_blank">Swagger</a>
+            </div>
+            <div class="card">
+                <h3>13. Urgences & Triage <span class="port">8093</span></h3>
+                <p>Triage (echelle 1-5), orientation, priorisation</p>
+                <a href="http://localhost:8093/swagger-ui.html" target="_blank">Swagger</a>
+            </div>
+            <div class="card">
+                <h3>14. Soins Infirmiers <span class="port">8094</span></h3>
+                <p>Plan de soins, administration, tracabilite</p>
+                <a href="http://localhost:8094/swagger-ui.html" target="_blank">Swagger</a>
+            </div>
+            <div class="card">
+                <h3>15. Bloc Operatoire <span class="port">8095</span></h3>
+                <p>Programmation chirurgicale, conflits salle, statuts</p>
+                <a href="http://localhost:8095/swagger-ui.html" target="_blank">Swagger</a>
+            </div>
+        </div>
+
+        <div class="section-title">
+            PILOTAGE — Direction & Transverse <span class="badge badge-pilotage">BONUS</span>
+        </div>
+        <div class="grid">
+            <div class="card">
+                <h3>16. Notifications <span class="port">8096</span></h3>
+                <p>Simulation WhatsApp / SMS / Email / Push sur evenements</p>
+                <a href="http://localhost:8096/swagger-ui.html" target="_blank">Swagger</a>
+            </div>
+            <div class="card">
+                <h3>17. Reporting & Admin <span class="port">8097</span></h3>
+                <p>Tableaux de bord, parametrage, CRM, audit, RBAC</p>
+                <a href="http://localhost:8097/swagger-ui.html" target="_blank">Swagger</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        HACNATION v1.0.0 &middot; Cote d'Ivoire &middot; Architecture Microservices 17 services &middot; Apache Kafka &middot; HAPI FHIR R4 &middot; Keycloak<br>
+        Stack: Java 21 &middot; Spring Boot 3.4 &middot; PostgreSQL 16 &middot; Redis 7 &middot; Docker
+    </div>
+</body>
+</html>

@@ -1,0 +1,51 @@
+name: HACNATION CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: hacnation
+          POSTGRES_USER: hacnation
+          POSTGRES_PASSWORD: hacnation123
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build and Test
+        run: mvn clean verify -pl common-lib,gateway,patient-identity-service,dme-service,rdv-service,fileattente-service,consultation-service,prescription-service,laboratoire-service,pharmacie-service,facturation-service,caisse-service,accueil-service,hospitalisation-service,urgences-service,soins-service,bloc-service,notification-service,reporting-admin-service -DskipITs=false
+        working-directory: backend
+
+      - name: Generate JaCoCo Report
+        run: mvn jacoco:report-aggregate
+        working-directory: backend
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: backend/**/target/site/jacoco/

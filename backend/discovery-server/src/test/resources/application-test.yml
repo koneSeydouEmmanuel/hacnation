@@ -1,0 +1,11 @@
+spring:
+  cloud:
+    config:
+      enabled: false
+    discovery:
+      enabled: false
+  kafka:
+    enabled: false
+eureka:
+  client:
+    enabled: false

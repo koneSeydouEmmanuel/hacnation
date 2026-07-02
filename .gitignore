@@ -1,0 +1,33 @@
+# Maven
+target/
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Docker
+volumes/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env.local
+.env.production
+
+# Logs
+*.log
+logs/
+
+# Uploads
+uploads/
+
+# Postman env (keep collection, not env)
+postman/*environment*.json

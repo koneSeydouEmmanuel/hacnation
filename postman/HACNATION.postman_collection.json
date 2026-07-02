@@ -1,0 +1,3232 @@
+{
+  "info": {
+    "_postman_id": "hacnation-collection",
+    "name": "HACNATION API",
+    "description": "Collection complète des endpoints de l'API HACNATION (Système d'Information Hospitalier)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('token')) {",
+          "    const loginRequest = {",
+          "        url: pm.variables.get('base_url') + '/api/auth/login',",
+          "        method: 'POST',",
+          "        header: { 'Content-Type': 'application/json' },",
+          "        body: {",
+          "            mode: 'raw',",
+          "            raw: JSON.stringify({",
+          "                username: pm.variables.get('username'),",
+          "                password: pm.variables.get('password')",
+          "            })",
+          "        }",
+          "    };",
+          "    pm.sendRequest(loginRequest, (err, res) => {",
+          "        if (!err && res.code === 200) {",
+          "            const json = res.json();",
+          "            pm.collectionVariables.set('token', json.access_token);",
+          "        }",
+          "    });",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global post-response test placeholder"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "patient_id",
+      "value": ""
+    },
+    {
+      "key": "rdv_id",
+      "value": ""
+    },
+    {
+      "key": "consultation_id",
+      "value": ""
+    },
+    {
+      "key": "facture_id",
+      "value": ""
+    },
+    {
+      "key": "demande_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Auth",
+      "item": [
+        {
+          "name": "POST Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set('token', pm.response.json().access_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "POST Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"nouveau_user\",\n  \"password\": \"password123\",\n  \"email\": \"user@hacnation.dz\",\n  \"nom\": \"Dupont\",\n  \"prenom\": \"Jean\",\n  \"role\": \"MEDECIN\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Patient-Identity",
+      "item": [
+        {
+          "name": "POST Create Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    try { pm.collectionVariables.set('patient_id', pm.response.json().id); } catch(e) {}",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Doe\",\n  \"prenom\": \"John\",\n  \"dateNaissance\": \"1985-06-15\",\n  \"sexe\": \"M\",\n  \"adresse\": \"123 Rue Principale, Alger\",\n  \"telephone\": \"0550123456\",\n  \"email\": \"john.doe@email.com\",\n  \"groupeSanguin\": \"A+\",\n  \"numSecuriteSociale\": \"1234567890123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/patients",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients"]
+            }
+          }
+        },
+        {
+          "name": "GET All Patients",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/patients",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients"]
+            }
+          }
+        },
+        {
+          "name": "GET Patient by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/patients/{{patient_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients", "{{patient_id}}"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Doe\",\n  \"prenom\": \"Johnathan\",\n  \"dateNaissance\": \"1985-06-15\",\n  \"sexe\": \"M\",\n  \"adresse\": \"456 Avenue Moderne, Oran\",\n  \"telephone\": \"0550987654\",\n  \"email\": \"john.doe@email.com\",\n  \"groupeSanguin\": \"A+\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/patients/{{patient_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients", "{{patient_id}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 204\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/patients/{{patient_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients", "{{patient_id}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Search Patients",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/patients/search?q=Doe",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients", "search"],
+              "query": [
+                { "key": "q", "value": "Doe" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. DME",
+      "item": [
+        {
+          "name": "GET Patient DME",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/patients/{{patient_id}}/dme",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients", "{{patient_id}}", "dme"]
+            }
+          }
+        },
+        {
+          "name": "POST Add Antecedent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"MEDICAL\",\n  \"description\": \"Diabète de type 2 diagnostiqué en 2018\",\n  \"dateDiagnostic\": \"2018-03-10\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/patients/{{patient_id}}/dme/antecedents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients", "{{patient_id}}", "dme", "antecedents"]
+            }
+          }
+        },
+        {
+          "name": "POST Add Note",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titre\": \"Note de suivi\",\n  \"contenu\": \"Patient vu en consultation, tension stable, poursuite du traitement.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/patients/{{patient_id}}/dme/notes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients", "{{patient_id}}", "dme", "notes"]
+            }
+          }
+        },
+        {
+          "name": "POST Upload Document",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "fichier",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "type",
+                  "value": "RADIOGRAPHIE",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Radio thoracique",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/patients/{{patient_id}}/dme/documents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients", "{{patient_id}}", "dme", "documents"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. RDV",
+      "item": [
+        {
+          "name": "POST Create RDV",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    try { pm.collectionVariables.set('rdv_id', pm.response.json().id); } catch(e) {}",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"{{patient_id}}\",\n  \"medecinId\": 1,\n  \"serviceId\": 1,\n  \"dateRdv\": \"2026-07-10\",\n  \"heureRdv\": \"10:00\",\n  \"motif\": \"Consultation de contrôle\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/rdv",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rdv"]
+            }
+          }
+        },
+        {
+          "name": "GET All RDV",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/rdv",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rdv"]
+            }
+          }
+        },
+        {
+          "name": "GET RDV by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/rdv/{{rdv_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rdv", "{{rdv_id}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Creneaux Disponibles",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/rdv/creneaux?date=2026-07-10&medecin_id=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rdv", "creneaux"],
+              "query": [
+                { "key": "date", "value": "2026-07-10" },
+                { "key": "medecin_id", "value": "1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET QR Code RDV",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/rdv/{{rdv_id}}/qr",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rdv", "{{rdv_id}}", "qr"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update RDV Statut",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statut\": \"CONFIRME\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/rdv/{{rdv_id}}/statut",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rdv", "{{rdv_id}}", "statut"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. File d'Attente",
+      "item": [
+        {
+          "name": "POST Check-in",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"{{patient_id}}\",\n  \"serviceId\": 1,\n  \"medecinId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/file-attente/checkin",
+              "host": ["{{base_url}}"],
+              "path": ["api", "file-attente", "checkin"]
+            }
+          }
+        },
+        {
+          "name": "POST Check-in via QR",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qrCode\": \"QR_DATA_FROM_APPOINTMENT\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/file-attente/checkin-qr",
+              "host": ["{{base_url}}"],
+              "path": ["api", "file-attente", "checkin-qr"]
+            }
+          }
+        },
+        {
+          "name": "GET Position in Queue",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/file-attente/position/{{patient_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "file-attente", "position", "{{patient_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Call Next",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": 1,\n  \"medecinId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/file-attente/call-next",
+              "host": ["{{base_url}}"],
+              "path": ["api", "file-attente", "call-next"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Consultation",
+      "item": [
+        {
+          "name": "POST Create Consultation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    try { pm.collectionVariables.set('consultation_id', pm.response.json().id); } catch(e) {}",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"{{patient_id}}\",\n  \"medecinId\": 1,\n  \"serviceId\": 1,\n  \"motif\": \"Douleurs abdominales\",\n  \"diagnostic\": \"Gastrite aiguë\",\n  \"observations\": \"Patient présente des douleurs depuis 3 jours\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/consultations",
+              "host": ["{{base_url}}"],
+              "path": ["api", "consultations"]
+            }
+          }
+        },
+        {
+          "name": "GET All Consultations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/consultations",
+              "host": ["{{base_url}}"],
+              "path": ["api", "consultations"]
+            }
+          }
+        },
+        {
+          "name": "GET Consultation by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/consultations/{{consultation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "consultations", "{{consultation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Consultation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"diagnostic\": \"Gastrite chronique\",\n  \"observations\": \"Mise à jour : symptômes persistants, prescription d'examens complémentaires\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/consultations/{{consultation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "consultations", "{{consultation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Terminer Consultation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conclusion\": \"Patient stable, traitement prescrit, revoir dans 1 mois\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/consultations/{{consultation_id}}/terminer",
+              "host": ["{{base_url}}"],
+              "path": ["api", "consultations", "{{consultation_id}}", "terminer"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Prescription",
+      "item": [
+        {
+          "name": "POST Create Prescription",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"consultationId\": \"{{consultation_id}}\",\n  \"patientId\": \"{{patient_id}}\",\n  \"medecinId\": 1,\n  \"medicaments\": [\n    {\n      \"nom\": \"Omeprazole\",\n      \"dosage\": \"20mg\",\n      \"posologie\": \"1 comprimé par jour\",\n      \"duree\": \"30 jours\"\n    },\n    {\n      \"nom\": \"Domperidone\",\n      \"dosage\": \"10mg\",\n      \"posologie\": \"1 comprimé 3 fois par jour\",\n      \"duree\": \"10 jours\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/prescriptions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "prescriptions"]
+            }
+          }
+        },
+        {
+          "name": "GET Prescriptions by Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/prescriptions?patient_id={{patient_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "prescriptions"],
+              "query": [
+                { "key": "patient_id", "value": "{{patient_id}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET All Prescriptions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/prescriptions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "prescriptions"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Laboratoire",
+      "item": [
+        {
+          "name": "GET Demandes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    var data = pm.response.json();",
+                  "    if (Array.isArray(data) && data.length > 0) {",
+                  "        try { pm.collectionVariables.set('demande_id', data[0].id); } catch(e) {}",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/laboratoire/demandes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "laboratoire", "demandes"]
+            }
+          }
+        },
+        {
+          "name": "GET Demande by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/laboratoire/demandes/{{demande_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "laboratoire", "demandes", "{{demande_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Saisir Resultats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resultats\": [\n    {\n      \"examen\": \"Glycémie\",\n      \"valeur\": \"1.10\",\n      \"unite\": \"g/L\",\n      \"normeInferieure\": \"0.70\",\n      \"normeSuperieure\": \"1.10\"\n    },\n    {\n      \"examen\": \"Créatinine\",\n      \"valeur\": \"9.5\",\n      \"unite\": \"mg/L\",\n      \"normeInferieure\": \"7.0\",\n      \"normeSuperieure\": \"12.0\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/laboratoire/demandes/{{demande_id}}/resultats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "laboratoire", "demandes", "{{demande_id}}", "resultats"]
+            }
+          }
+        },
+        {
+          "name": "POST Upload Fichier Resultats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "fichier",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "description",
+                  "value": "Rapport d'analyses complet",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/laboratoire/demandes/{{demande_id}}/fichiers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "laboratoire", "demandes", "{{demande_id}}", "fichiers"]
+            }
+          }
+        },
+        {
+          "name": "POST Valider Demande",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"commentaire\": \"Tous les résultats sont conformes\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/laboratoire/demandes/{{demande_id}}/valider",
+              "host": ["{{base_url}}"],
+              "path": ["api", "laboratoire", "demandes", "{{demande_id}}", "valider"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Pharmacie",
+      "item": [
+        {
+          "name": "GET Ordonnances en Attente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/pharmacie/ordonnances",
+              "host": ["{{base_url}}"],
+              "path": ["api", "pharmacie", "ordonnances"]
+            }
+          }
+        },
+        {
+          "name": "GET Stock Medicaments",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/pharmacie/stock",
+              "host": ["{{base_url}}"],
+              "path": ["api", "pharmacie", "stock"]
+            }
+          }
+        },
+        {
+          "name": "POST Delivrer Medicaments",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prescriptionId\": 1,\n  \"patientId\": \"{{patient_id}}\",\n  \"medicaments\": [\n    {\n      \"medicamentId\": 1,\n      \"quantite\": 2\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/pharmacie/delivrer",
+              "host": ["{{base_url}}"],
+              "path": ["api", "pharmacie", "delivrer"]
+            }
+          }
+        },
+        {
+          "name": "POST Add Stock",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicamentId\": 1,\n  \"quantite\": 100,\n  \"lot\": \"LOT2026-001\",\n  \"datePeremption\": \"2027-12-31\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/pharmacie/stock",
+              "host": ["{{base_url}}"],
+              "path": ["api", "pharmacie", "stock"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Facturation",
+      "item": [
+        {
+          "name": "POST Generer Facture",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    try { pm.collectionVariables.set('facture_id', pm.response.json().id); } catch(e) {}",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"{{patient_id}}\",\n  \"consultationId\": \"{{consultation_id}}\",\n  \"actes\": [\n    {\n      \"acteId\": 1,\n      \"quantite\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/facturation/generer",
+              "host": ["{{base_url}}"],
+              "path": ["api", "facturation", "generer"]
+            }
+          }
+        },
+        {
+          "name": "GET Facture by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/facturation/{{facture_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "facturation", "{{facture_id}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Factures by Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/facturation/patient/{{patient_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "facturation", "patient", "{{patient_id}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Factures by Period",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/facturation/period?debut=2026-07-01&fin=2026-07-31",
+              "host": ["{{base_url}}"],
+              "path": ["api", "facturation", "period"],
+              "query": [
+                { "key": "debut", "value": "2026-07-01" },
+                { "key": "fin", "value": "2026-07-31" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Caisse",
+      "item": [
+        {
+          "name": "POST Payer Facture",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"factureId\": \"{{facture_id}}\",\n  \"modePaiement\": \"ESPECES\",\n  \"montant\": 2500.00,\n  \"montantRecu\": 3000.00\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/caisse/payer",
+              "host": ["{{base_url}}"],
+              "path": ["api", "caisse", "payer"]
+            }
+          }
+        },
+        {
+          "name": "GET Paiements",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/caisse/paiements",
+              "host": ["{{base_url}}"],
+              "path": ["api", "caisse", "paiements"]
+            }
+          }
+        },
+        {
+          "name": "GET Resume Caisse",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/caisse/resume?date=2026-07-02",
+              "host": ["{{base_url}}"],
+              "path": ["api", "caisse", "resume"],
+              "query": [
+                { "key": "date", "value": "2026-07-02" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE Annuler Paiement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 204\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/caisse/paiements/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "caisse", "paiements", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Accueil",
+      "item": [
+        {
+          "name": "POST Admission Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Martin\",\n  \"prenom\": \"Sophie\",\n  \"dateNaissance\": \"1990-03-22\",\n  \"sexe\": \"F\",\n  \"telephone\": \"0660123456\",\n  \"serviceId\": 1,\n  \"motif\": \"Consultation urgente\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/accueil/admission",
+              "host": ["{{base_url}}"],
+              "path": ["api", "accueil", "admission"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Hospitalisation",
+      "item": [
+        {
+          "name": "POST Admettre Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"{{patient_id}}\",\n  \"litId\": 1,\n  \"serviceId\": 1,\n  \"medecinId\": 1,\n  \"motifHospitalisation\": \"Pneumonie sévère\",\n  \"dateEntree\": \"2026-07-02\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/hospitalisation/admettre",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hospitalisation", "admettre"]
+            }
+          }
+        },
+        {
+          "name": "POST Sortir Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hospitalisationId\": 1,\n  \"motifSortie\": \"Guérison, retour à domicile\",\n  \"dateSortie\": \"2026-07-09\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/hospitalisation/sortir",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hospitalisation", "sortir"]
+            }
+          }
+        },
+        {
+          "name": "GET Tous les Lits",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/hospitalisation/lits",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hospitalisation", "lits"]
+            }
+          }
+        },
+        {
+          "name": "GET Lits Disponibles",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/hospitalisation/lits/disponibles",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hospitalisation", "lits", "disponibles"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. Urgences",
+      "item": [
+        {
+          "name": "POST Triage Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"{{patient_id}}\",\n  \"niveauUrgence\": \"URGENT\",\n  \"motif\": \"Douleur thoracique aiguë\",\n  \"parametresVitaux\": {\n    \"tensionArterielle\": \"140/90\",\n    \"frequenceCardiaque\": 110,\n    \"temperature\": 38.5,\n    \"saturation\": 95\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/urgences/triage",
+              "host": ["{{base_url}}"],
+              "path": ["api", "urgences", "triage"]
+            }
+          }
+        },
+        {
+          "name": "GET File Urgences",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/urgences/file",
+              "host": ["{{base_url}}"],
+              "path": ["api", "urgences", "file"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "14. Soins",
+      "item": [
+        {
+          "name": "POST Create Soin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hospitalisationId\": 1,\n  \"patientId\": \"{{patient_id}}\",\n  \"typeSoin\": \"PANSEMENT\",\n  \"description\": \"Pansement plaie post-opératoire\",\n  \"frequence\": \"2 fois par jour\",\n  \"dateDebut\": \"2026-07-02\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/soins",
+              "host": ["{{base_url}}"],
+              "path": ["api", "soins"]
+            }
+          }
+        },
+        {
+          "name": "GET Soins",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/soins",
+              "host": ["{{base_url}}"],
+              "path": ["api", "soins"]
+            }
+          }
+        },
+        {
+          "name": "GET Soin by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/soins/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "soins", "1"]
+            }
+          }
+        },
+        {
+          "name": "POST Administrer Soin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"soinId\": 1,\n  \"observation\": \"Soin administré sans complication\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/soins/1/administrer",
+              "host": ["{{base_url}}"],
+              "path": ["api", "soins", "1", "administrer"]
+            }
+          }
+        },
+        {
+          "name": "POST Non-Administre Soin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"soinId\": 1,\n  \"raison\": \"Patient refuse le soin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/soins/1/non-administre",
+              "host": ["{{base_url}}"],
+              "path": ["api", "soins", "1", "non-administre"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "15. Bloc Opératoire",
+      "item": [
+        {
+          "name": "POST Planifier Intervention",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"{{patient_id}}\",\n  \"typeIntervention\": \"APPENDICECTOMIE\",\n  \"chirurgienId\": 1,\n  \"anesthesisteId\": 2,\n  \"salleId\": 1,\n  \"dateIntervention\": \"2026-07-05\",\n  \"heureDebut\": \"08:00\",\n  \"dureeEstimee\": 90,\n  \"notesPreoperatoires\": \"Patient à jeun depuis minuit\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/bloc/interventions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bloc", "interventions"]
+            }
+          }
+        },
+        {
+          "name": "GET Interventions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/bloc/interventions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bloc", "interventions"]
+            }
+          }
+        },
+        {
+          "name": "GET Intervention by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/bloc/interventions/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bloc", "interventions", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "16. Notification",
+      "item": [
+        {
+          "name": "GET Historique Notifications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications"]
+            }
+          }
+        },
+        {
+          "name": "POST Envoyer Notification",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destinataireId\": 2,\n  \"titre\": \"Rappel RDV\",\n  \"message\": \"Rappel : Vous avez un rendez-vous le 10/07/2026 à 10h00\",\n  \"type\": \"RAPPEL_RDV\",\n  \"canal\": \"EMAIL\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/notifications/envoyer",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "envoyer"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "17. Admin - Utilisateurs",
+      "item": [
+        {
+          "name": "POST Create Utilisateur",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"dr.smith\",\n  \"password\": \"password123\",\n  \"nom\": \"Smith\",\n  \"prenom\": \"Robert\",\n  \"email\": \"r.smith@hacnation.dz\",\n  \"role\": \"MEDECIN\",\n  \"serviceId\": 1,\n  \"actif\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/utilisateurs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "utilisateurs"]
+            }
+          }
+        },
+        {
+          "name": "GET All Utilisateurs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/utilisateurs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "utilisateurs"]
+            }
+          }
+        },
+        {
+          "name": "GET Utilisateur by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/utilisateurs/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "utilisateurs", "1"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Utilisateur",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Smith\",\n  \"prenom\": \"Robert\",\n  \"email\": \"r.smith@hacnation.dz\",\n  \"role\": \"MEDECIN\",\n  \"serviceId\": 2,\n  \"actif\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/utilisateurs/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "utilisateurs", "1"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Utilisateur",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 204\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/utilisateurs/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "utilisateurs", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "18. Admin - Services",
+      "item": [
+        {
+          "name": "POST Create Service",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Cardiologie\",\n  \"code\": \"CARD\",\n  \"description\": \"Service de cardiologie\",\n  \"actif\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/services",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "services"]
+            }
+          }
+        },
+        {
+          "name": "GET All Services",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/services",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "services"]
+            }
+          }
+        },
+        {
+          "name": "GET Service by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/services/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "services", "1"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Service",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Cardiologie Interventionnelle\",\n  \"code\": \"CARD-INT\",\n  \"description\": \"Service de cardiologie interventionnelle\",\n  \"actif\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/services/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "services", "1"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Service",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 204\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/services/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "services", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "19. Admin - Actes",
+      "item": [
+        {
+          "name": "POST Create Acte",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"CS001\",\n  \"libelle\": \"Consultation générale\",\n  \"description\": \"Consultation médicale standard\",\n  \"prix\": 1500.00,\n  \"serviceId\": 1,\n  \"actif\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/actes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "actes"]
+            }
+          }
+        },
+        {
+          "name": "GET All Actes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/actes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "actes"]
+            }
+          }
+        },
+        {
+          "name": "GET Acte by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/actes/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "actes", "1"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Acte",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"CS001\",\n  \"libelle\": \"Consultation générale\",\n  \"description\": \"Consultation médicale standard\",\n  \"prix\": 1800.00,\n  \"serviceId\": 1,\n  \"actif\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/actes/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "actes", "1"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Acte",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 204\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/actes/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "actes", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "20. Admin - Tarifs",
+      "item": [
+        {
+          "name": "POST Create Tarif",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"acteId\": 1,\n  \"codeTarif\": \"TG001\",\n  \"libelle\": \"Tarif général consultation\",\n  \"prix\": 1500.00,\n  \"dateEffet\": \"2026-07-01\",\n  \"actif\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/tarifs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "tarifs"]
+            }
+          }
+        },
+        {
+          "name": "GET All Tarifs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/tarifs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "tarifs"]
+            }
+          }
+        },
+        {
+          "name": "GET Tarif by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/tarifs/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "tarifs", "1"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Tarif",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"acteId\": 1,\n  \"codeTarif\": \"TG001\",\n  \"libelle\": \"Tarif général consultation révisé\",\n  \"prix\": 1800.00,\n  \"dateEffet\": \"2026-08-01\",\n  \"actif\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/tarifs/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "tarifs", "1"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Tarif",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 204\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/tarifs/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "tarifs", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "21. Parametrage",
+      "item": [
+        {
+          "name": "GET Parametres",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/parametres",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "parametres"]
+            }
+          }
+        },
+        {
+          "name": "POST Create Parametre",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cle\": \"HORAIRES_OUVERTURE\",\n  \"valeur\": \"08:00-17:00\",\n  \"description\": \"Horaires d'ouverture de l'établissement\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/parametres",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "parametres"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Parametre",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cle\": \"HORAIRES_OUVERTURE\",\n  \"valeur\": \"07:00-18:00\",\n  \"description\": \"Horaires d'ouverture de l'établissement (mis à jour)\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/parametres/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "parametres", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "22. Audit",
+      "item": [
+        {
+          "name": "GET Audit Logs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/audit?action=LOGIN&user_id=1&start_date=2026-01-01&end_date=2026-07-31&page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "audit"],
+              "query": [
+                { "key": "action", "value": "LOGIN" },
+                { "key": "user_id", "value": "1" },
+                { "key": "start_date", "value": "2026-01-01" },
+                { "key": "end_date", "value": "2026-07-31" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "23. CRM",
+      "item": [
+        {
+          "name": "GET Interactions Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/crm/interactions?patient_id={{patient_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "crm", "interactions"],
+              "query": [
+                { "key": "patient_id", "value": "{{patient_id}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Fidelite Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/crm/fidelite/{{patient_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "crm", "fidelite", "{{patient_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "24. Reporting",
+      "item": [
+        {
+          "name": "GET Dashboard Files d'Attente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reporting/files",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reporting", "files"]
+            }
+          }
+        },
+        {
+          "name": "GET Dashboard Consultations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reporting/consultations?debut=2026-06-01&fin=2026-07-02",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reporting", "consultations"],
+              "query": [
+                { "key": "debut", "value": "2026-06-01" },
+                { "key": "fin", "value": "2026-07-02" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Dashboard Recettes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reporting/recettes?debut=2026-06-01&fin=2026-07-02",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reporting", "recettes"],
+              "query": [
+                { "key": "debut", "value": "2026-06-01" },
+                { "key": "fin", "value": "2026-07-02" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Dashboard Stocks",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reporting/stocks",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reporting", "stocks"]
+            }
+          }
+        },
+        {
+          "name": "GET Dashboard Urgences",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reporting/urgences",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reporting", "urgences"]
+            }
+          }
+        },
+        {
+          "name": "GET Dashboard Global",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reporting/global",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reporting", "global"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "25. FHIR",
+      "item": [
+        {
+          "name": "GET FHIR Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/fhir/Patient/{{patient_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "fhir", "Patient", "{{patient_id}}"]
+            }
+          }
+        },
+        {
+          "name": "GET FHIR Appointment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/fhir/Appointment/{{rdv_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "fhir", "Appointment", "{{rdv_id}}"]
+            }
+          }
+        },
+        {
+          "name": "GET FHIR Observation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/fhir/Observation/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "fhir", "Observation", "1"]
+            }
+          }
+        },
+        {
+          "name": "GET FHIR DiagnosticReport",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/fhir/DiagnosticReport/{{demande_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "fhir", "DiagnosticReport", "{{demande_id}}"]
+            }
+          }
+        },
+        {
+          "name": "GET FHIR ServiceRequest",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/fhir/ServiceRequest/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "fhir", "ServiceRequest", "1"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  }
+}
