@@ -144,7 +144,8 @@ public class AuthController {
                 .onErrorResume(e -> {
                     log.error("CRITICAL: Echec rollback Keycloak pour userId: {}", userId);
                     return Mono.empty();
-                });
+                })
+                .then();
     }
 
     public static class LoginRequest {
